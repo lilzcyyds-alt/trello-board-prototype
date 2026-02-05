@@ -1,13 +1,31 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Lock, Plus, X, Inbox, Circle } from "lucide-react";
+import { Lock, Plus, Inbox } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useBoard } from "@/context/BoardContext";
+import { CardItem } from "./CardItem";
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
+interface InboxColumnProps {
+  isFullScreen?: boolean;
+}
 
 export function InboxColumn({ isFullScreen }: InboxColumnProps) {
   const { data, addCardToInbox } = useBoard();
   const [inputValue, setInputValue] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { setNodeRef } = useDroppable({
+    id: "inbox",
+    data: {
+      type: "container",
+      container: "inbox",
+    },
+  });
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -37,10 +55,13 @@ export function InboxColumn({ isFullScreen }: InboxColumnProps) {
   };
 
   return (
-    <aside className={cn(
-      "text-slate-200 flex flex-col h-full",
-      isFullScreen ? "items-center" : ""
-    )}>
+    <aside 
+      ref={setNodeRef}
+      className={cn(
+        "text-slate-200 flex flex-col h-full",
+        isFullScreen ? "items-center" : ""
+      )}
+    >
       <div className={cn(
         "p-4 pb-2 flex flex-col gap-3 w-full",
         isFullScreen ? "max-w-4xl" : ""
@@ -91,19 +112,28 @@ export function InboxColumn({ isFullScreen }: InboxColumnProps) {
         )}
       </div>
 
-      <div className={cn(
-        "flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 w-full",
-        isFullScreen ? "max-w-4xl" : ""
-      )}>
-        {inboxCards.map((card) => (
-          <div
-            key={card.id}
-            className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-[#334155] cursor-pointer transition-colors border border-transparent hover:border-slate-600 shadow-sm"
+      <div 
+        className={cn(
+          "flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 w-full",
+          isFullScreen ? "max-w-4xl" : ""
+        )}
+      >
+        <div className="flex flex-col gap-2">
+          <SortableContext
+            id="inbox"
+            items={data.inboxIds}
+            strategy={verticalListSortingStrategy}
           >
-            <Circle className="w-4 h-4 text-slate-400 shrink-0" />
-            <div className="text-sm font-medium leading-tight truncate">{card.title}</div>
-          </div>
-        ))}
+            {inboxCards.map((card) => (
+              <CardItem 
+                key={card.id} 
+                card={card} 
+                isInbox 
+                containerId="inbox"
+              />
+            ))}
+          </SortableContext>
+        </div>
       </div>
 
       <div className={cn(

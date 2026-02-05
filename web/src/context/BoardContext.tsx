@@ -4,8 +4,12 @@ import { BoardData, Card, mockData } from "@/data/mockData";
 interface BoardContextType {
   data: BoardData;
   addCardToInbox: (title: string) => void;
+  removeCardFromInbox: (cardId: string) => void;
+  removeCard: (cardId: string, containerId: string) => void;
   addCardToList: (listId: string, title: string) => void;
   updateBoardTitle: (title: string) => void;
+  moveCard: (cardId: string, sourceContainer: string, destContainer: string, index: number) => void;
+  moveList: (listId: string, index: number) => void;
 }
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -54,6 +58,38 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const removeCardFromInbox = (cardId: string) => {
+    setData((prev) => ({
+      ...prev,
+      inboxIds: prev.inboxIds.filter((id) => id !== cardId),
+    }));
+  };
+
+  const removeCard = (cardId: string, containerId: string) => {
+    setData((prev) => {
+      if (containerId === "inbox") {
+        return {
+          ...prev,
+          inboxIds: prev.inboxIds.filter((id) => id !== cardId),
+        };
+      }
+      
+      const list = prev.lists[containerId];
+      if (!list) return prev;
+
+      return {
+        ...prev,
+        lists: {
+          ...prev.lists,
+          [containerId]: {
+            ...list,
+            cardIds: list.cardIds.filter((id) => id !== cardId),
+          },
+        },
+      };
+    });
+  };
+
   const addCardToList = (listId: string, title: string) => {
     const newId = `c-${Date.now()}`;
     const newCard: Card = {
@@ -90,8 +126,72 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const moveCard = (cardId: string, sourceContainer: string, destContainer: string, index: number) => {
+    setData((prev) => {
+      const newData = { ...prev };
+      
+      // 1. Remove from source
+      if (sourceContainer === "inbox") {
+        newData.inboxIds = newData.inboxIds.filter(id => id !== cardId);
+      } else {
+        const sourceList = newData.lists[sourceContainer];
+        if (sourceList) {
+          newData.lists = {
+            ...newData.lists,
+            [sourceContainer]: {
+              ...sourceList,
+              cardIds: sourceList.cardIds.filter(id => id !== cardId),
+            }
+          };
+        }
+      }
+
+      // 2. Add to destination
+      if (destContainer === "inbox") {
+        const newInboxIds = [...newData.inboxIds];
+        newInboxIds.splice(index, 0, cardId);
+        newData.inboxIds = newInboxIds;
+      } else {
+        const destList = newData.lists[destContainer];
+        if (destList) {
+          const newCardIds = [...destList.cardIds];
+          newCardIds.splice(index, 0, cardId);
+          newData.lists = {
+            ...newData.lists,
+            [destContainer]: {
+              ...destList,
+              cardIds: newCardIds,
+            }
+          };
+        }
+      }
+
+      return newData;
+    });
+  };
+
+  const moveList = (listId: string, index: number) => {
+    setData((prev) => {
+      const newListOrder = prev.listOrder.filter(id => id !== listId);
+      newListOrder.splice(index, 0, listId);
+      return {
+        ...prev,
+        listOrder: newListOrder,
+      };
+    });
+  };
+
   return (
-    <BoardContext.Provider value={{ data, addCardToInbox, addCardToList, updateBoardTitle }}>
+    <BoardContext.Provider value={{ 
+      data, 
+      addCardToInbox, 
+      removeCardFromInbox, 
+      removeCard,
+      addCardToList, 
+      updateBoardTitle,
+      moveCard,
+      moveList
+    }}>
       {children}
     </BoardContext.Provider>
   );

@@ -1,6 +1,7 @@
 export interface Card {
   id: string;
   title: string;
+  source?: "email" | "slack" | "teams" | "chrome";
 }
 
 export interface List {
