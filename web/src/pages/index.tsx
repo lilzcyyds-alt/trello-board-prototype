@@ -1,12 +1,13 @@
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import Head from "next/head";
+import { AppShell } from "@/components/AppShell";
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/inbox");
-  }, [router]);
-
-  return null;
+  return (
+    <>
+      <Head>
+        <title>Trello Prototype</title>
+      </Head>
+      <AppShell />
+    </>
+  );
 }
