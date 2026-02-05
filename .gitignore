@@ -1,0 +1,19 @@
+# root
+.DS_Store
+
+# Next.js app under /web
+web/node_modules
+web/.next
+web/out
+web/.turbo
+web/coverage
+web/.env
+web/.env.*
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/pnpm-debug.log*
+
+# Editors
+.vscode
+.idea
