@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useBoard } from "@/context/BoardContext";
 import { CardItem } from "./CardItem";
+import { ListColumn } from "./ListColumn";
 
 const MIN_INBOX_WIDTH = 272;
 const MIN_BOARD_WIDTH = 375;
@@ -63,8 +64,11 @@ export function AppShell({ children }: { children?: ReactNode }) {
     })
   );
 
+  const [isMounted, setIsMounted] = useState(false);
+
   // Sync ref and container width
   useEffect(() => {
+    setIsMounted(true);
     inboxWidthRef.current = inboxWidth;
   }, [inboxWidth]);
 
@@ -182,6 +186,15 @@ export function AppShell({ children }: { children?: ReactNode }) {
     const activeContainer = findContainer(activeId);
     const overContainer = findContainer(overId);
 
+    if (activeType === "list") {
+      const oldIndex = data.listOrder.indexOf(activeId);
+      const newIndex = data.listOrder.indexOf(overId);
+      if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+        moveList(activeId, newIndex);
+      }
+      return;
+    }
+
     // Restriction: only works for cards
     if (!activeContainer || !overContainer || activeType !== "card") {
       return;
@@ -235,6 +248,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
   return (
     <DndContext
+      id="main-dnd-context"
       sensors={sensors}
       collisionDetection={rectIntersection}
       onDragStart={handleDragStart}
@@ -315,11 +329,18 @@ export function AppShell({ children }: { children?: ReactNode }) {
           },
         }),
       }}>
-        {activeId && activeCard && (
+        {activeId && activeType === "card" && activeCard && (
           <CardItem 
             card={activeCard} 
-            isInbox={activeType === "card" && (data.inboxIds.includes(activeId))} 
+            isInbox={data.inboxIds.includes(activeId)} 
             isOverlay 
+          />
+        )}
+        {activeId && activeType === "list" && data.lists[activeId] && (
+          <ListColumn
+            list={data.lists[activeId]}
+            cards={data.lists[activeId].cardIds.map((id) => data.cards[id])}
+            isOverlay
           />
         )}
       </DragOverlay>

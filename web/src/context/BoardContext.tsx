@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { BoardData, Card, mockData } from "@/data/mockData";
+import { BoardData, Card, mockData, LIST_COLORS } from "@/data/mockData";
 
 interface BoardContextType {
   data: BoardData;
@@ -8,6 +8,9 @@ interface BoardContextType {
   removeCard: (cardId: string, containerId: string) => void;
   addCardToList: (listId: string, title: string) => void;
   updateBoardTitle: (title: string) => void;
+  updateListTitle: (listId: string, title: string) => void;
+  deleteList: (listId: string) => void;
+  addList: (title: string) => void;
   moveCard: (cardId: string, sourceContainer: string, destContainer: string, index: number) => void;
   moveList: (listId: string, index: number) => void;
 }
@@ -126,6 +129,59 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const updateListTitle = (listId: string, title: string) => {
+    setData((prev) => {
+      const list = prev.lists[listId];
+      if (!list) return prev;
+      return {
+        ...prev,
+        lists: {
+          ...prev.lists,
+          [listId]: {
+            ...list,
+            title,
+          },
+        },
+      };
+    });
+  };
+
+  const deleteList = (listId: string) => {
+    setData((prev) => {
+      const newListOrder = prev.listOrder.filter((id) => id !== listId);
+      const newLists = { ...prev.lists };
+      delete newLists[listId];
+      
+      // Also clean up cards that were in this list? 
+      // For simplicity, we just remove the list from order and list map.
+      return {
+        ...prev,
+        listOrder: newListOrder,
+        lists: newLists,
+      };
+    });
+  };
+
+  const addList = (title: string) => {
+    const newId = `list-${Date.now()}`;
+    setData((prev) => {
+      const color = LIST_COLORS[prev.listOrder.length % LIST_COLORS.length];
+      return {
+        ...prev,
+        lists: {
+          ...prev.lists,
+          [newId]: {
+            id: newId,
+            title,
+            cardIds: [],
+            color,
+          },
+        },
+        listOrder: [...prev.listOrder, newId],
+      };
+    });
+  };
+
   const moveCard = (cardId: string, sourceContainer: string, destContainer: string, index: number) => {
     setData((prev) => {
       const newData = { ...prev };
@@ -189,6 +245,9 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       removeCard,
       addCardToList, 
       updateBoardTitle,
+      updateListTitle,
+      deleteList,
+      addList,
       moveCard,
       moveList
     }}>

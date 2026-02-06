@@ -24,6 +24,11 @@ export function CardItem({ card, isInbox, isOverlay, containerId }: CardItemProp
   const { removeCard } = useBoard();
   const [isCompleting, setIsCompleting] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const {
     attributes,
@@ -71,8 +76,8 @@ export function CardItem({ card, isInbox, isOverlay, containerId }: CardItemProp
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(isMounted ? attributes : {})}
+      {...(isMounted ? listeners : {})}
       className={cn(
         "group relative flex flex-col bg-[#252930] rounded-xl p-3 shadow-sm transition-all duration-500 border border-transparent hover:border-[#8db1f0] cursor-grab active:cursor-grabbing select-none overflow-hidden",
         isDragging && "opacity-20 border-dashed border-slate-400 bg-slate-100 shadow-none",

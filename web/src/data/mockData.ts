@@ -8,7 +8,19 @@ export interface List {
   id: string;
   title: string;
   cardIds: string[];
+  color?: string;
 }
+
+export const LIST_COLORS = [
+  "#579dff", // Blue
+  "#4bce97", // Green
+  "#f5cd47", // Yellow
+  "#fea362", // Orange
+  "#f87168", // Red
+  "#9f8fef", // Purple
+  "#e774bb", // Pink
+  "#60c6d2", // Teal
+];
 
 export interface BoardData {
   cards: Record<string, Card>;
@@ -35,16 +47,19 @@ export const mockData: BoardData = {
       id: "list-todo",
       title: "Today",
       cardIds: ["c1", "c2"],
+      color: "#579dff",
     },
     "list-doing": {
       id: "list-doing",
       title: "This Week",
       cardIds: ["c3", "c4", "c5"],
+      color: "#4bce97",
     },
     "list-done": {
       id: "list-done",
       title: "Later",
       cardIds: ["c6"],
+      color: "#f5cd47",
     },
   },
   listOrder: ["list-todo", "list-doing", "list-done"],
